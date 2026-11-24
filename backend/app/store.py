@@ -10,13 +10,20 @@ from app.seed import SEED_ROWS
 
 
 class Store:
+    # 快照字段迁移的辅助表：走专用接口，不计入业务模块概览。
+    AUX_TABLES = frozenset({
+        "snapshot_field_migration",
+        "snapshot_correction",
+        "snapshot_audit_checklist",
+    })
+
     def __init__(self) -> None:
         self._tables: dict[str, list[dict[str, Any]]] = {
             name: [dict(row) for row in rows] for name, rows in SEED_ROWS.items()
         }
 
     def module_names(self) -> list[str]:
-        return sorted(self._tables)
+        return sorted(name for name in self._tables if name not in self.AUX_TABLES)
 
     def rows(self, module: str) -> list[dict[str, Any]]:
         return self._tables.setdefault(module, [])

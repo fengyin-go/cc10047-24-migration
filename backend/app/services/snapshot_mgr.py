@@ -40,3 +40,18 @@ class SnapshotMgrService(BaseModuleService):
             "expiration": entry.get("过期时间", "30d"),
             "label": entry.get("快照标签", "manual"),
         }
+
+    def domain_migration_evidence(self, entry_id: int) -> dict[str, Any]:
+        """快照管理读取迁移记录：查明新旧数据对应的快照和金额证据。"""
+        from app.services.snapshot_migration import snapshot_migration_service
+
+        entry = store.find(self.MODULE, entry_id)
+        if not entry:
+            return {"ok": False, "message": f"快照 {entry_id} 不存在"}
+        evidence = snapshot_migration_service.evidence_for_snapshot(str(entry.get("快照标识")))
+        return {
+            "ok": True,
+            "snapshot_id": entry.get("快照标识"),
+            "table": entry.get("目标湖表"),
+            **evidence,
+        }
